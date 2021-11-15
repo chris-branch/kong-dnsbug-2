@@ -6,7 +6,7 @@ Follow these steps to reproduce the issue:
 1. Clone this repo
 2. `docker build -t kong-dns-bug . && docker run -p 8000:8000 -p 8001:8001 kong-dns-bug`
 3. Watch the log output from Kong: `docker logs -f <container_id>`
-4. Observe messages indicating the upstream is unhealthy and then healthy again any time ttl toggles between zero and non-zero on consequetive DNS queries.  Example:
+4. Observe messages indicating the upstream is unhealthy and then healthy again any time TTL toggles between zero and non-zero on consecutive DNS queries.  Example:
 
 ```
 2021/11/15 21:05:32 [debug] 1097#0: *21 [lua] base.lua:647: queryDns(): [upstream:example-upstream 1] querying dns for example.com
@@ -24,9 +24,9 @@ Follow these steps to reproduce the issue:
 
 ## Analysis
 
-The instance is of Kong is configured with single route (`/example`) whose target points `https://www.example.com`.  The configuration also runs an instance of CoreDNS to provide custom DNS resolution.  The custom DNS resolution forwards to Google DNS, but configures caching such that the maximum TTL value is 11, and TTL will sometimes be 0 in order simulate Route53 and Azure DNS resolution in a more controlled environment.  With DNS caching of 11 seconds, Kong will initially requery every 11 seconds.  It will eventually get TTL = 0, which causes Kong to put the target into a special mode where it will requery every 60 seconds.  Eventually, it will receive a non-zero TTL value which briefly causes Kong to mark the target unhealthy and then healthy again.  During the brief time, any requests that attempt to hit that endpoint will result in a 503 error.  Note that the cache time of 11 was intentionally selected so that it's NOT periodic with Kong's 60-second timer, so that Kong will receive both zero and non-zero TTL values from the DNS resolver over time).
+The instance of Kong is configured with a single route (`/example`) whose target points to `https://www.example.com`.  The configuration also runs an instance of CoreDNS to provide custom DNS resolution.  The custom DNS resolution forwards to Google DNS, but configures caching such that the maximum TTL value is 11, and the resolver will sometimes return TTL = 0 in order simulate Route53 and Azure DNS resolution in a more controlled environment.  With DNS caching of 11 seconds, Kong will initially requery every 11 seconds.  It will eventually get TTL = 0, which causes Kong to put the target into a special mode where it will requery every 60 seconds.  Eventually, it will receive a non-zero TTL value again which briefly causes Kong to mark the target unhealthy and then healthy.  During the brief time when the target is unhealthy, any requests that attempt to use that endpoint will result in a 503 error.  Note that the DNS cache time of 11 seconds was intentionally selected so that it's NOT periodic with Kong's 60-second timer, so that Kong will receive both zero and non-zero TTL values from the DNS resolver over time.
 
-If open a shell inside the Kong container, you can check the current ttl returned by the DNS resolver as follows:
+If you open a shell inside the Kong container, you can check the current TTL returned by the DNS resolver as follows:
 
 ```
 # dig example.com
