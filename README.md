@@ -4,9 +4,10 @@ Test case to reproduce a bug in Kong 2.5.x related targets whose DNS lookup some
 Follow these steps to reproduce the issue:
 
 1. Clone this repo
-2. `docker build -t kong-dns-bug . && docker run -p 8000:8000 -p 8001:8001 kong-dns-bug`
+2. `docker-compose up -d`
 3. Watch the log output from Kong: `docker logs -f <container_id>`
-4. Observe messages indicating the upstream is unhealthy and then healthy again any time TTL toggles between zero and non-zero on consecutive DNS queries.  Example:
+4. Observe messages indicating the upstream is unhealthy and then healthy again any time TTL toggles between zero and non-zero on consecutive DNS queries.  Example (see `[warn]` messages):
+5. When finished, clean up via `docker-compose down --remove-orphans`
 
 ```
 2021/11/15 21:05:32 [debug] 1097#0: *21 [lua] base.lua:647: queryDns(): [upstream:example-upstream 1] querying dns for example.com
