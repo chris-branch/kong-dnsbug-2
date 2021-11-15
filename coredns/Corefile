@@ -1,7 +1,7 @@
 .:53 {
     forward . 8.8.8.8:53
     cache {
-        success 9984 11
+        success 9984 14
         serve_stale
     }
     log
