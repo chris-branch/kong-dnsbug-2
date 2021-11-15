@@ -1,0 +1,20 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: example-service
+    host: example-upstream
+    protocol: https
+    path: /
+    routes:
+      - name: example-route
+        strip_path: true
+        paths:
+          - /example
+
+upstreams:
+  - name: example-upstream
+    host_header: example.com
+    targets:
+    - target: example.com:443
+      weight: 100
